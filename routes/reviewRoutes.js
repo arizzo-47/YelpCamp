@@ -1,5 +1,6 @@
 
 const router = require('express').Router({ mergeParams: true });
+const flash = require('connect-flash');
 
 const { reviewSchema } = require('../schemas.js');
 
@@ -25,6 +26,7 @@ router.post('/', validateReview, catchAsync(async (req, res) => {
     campground.reviews.push(review);
     await campground.save();
     await review.save();
+    req.flash('success', "Successfully added reviuew");
     res.redirect(`/campgrounds/${campground._id}`);
 }));
 

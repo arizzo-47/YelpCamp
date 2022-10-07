@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const flash = require('connect-flash');
 
 const Campground = require('../models/campground');
 const { campgroundSchema } = require('../schemas.js');
@@ -18,7 +19,7 @@ const validateCampground = (req, res, next) => {
 
 router.get('/', catchAsync(async (req, res) => {
     const campgrounds = await Campground.find();
-    res.render('campgrounds/index', { campgrounds });
+    res.render('campgrounds/index', { campgrounds, success: res.locals.success });
 }));
 
 router.get('/new', (req, res) => {
@@ -27,12 +28,17 @@ router.get('/new', (req, res) => {
 
 router.get('/:id', catchAsync(async (req, res) => {
     const campground = await Campground.findOne({ _id: req.params.id }).populate('reviews');
+    if (!campground) {
+        req.flash('error', "Cannot find campground");
+        return res.redirect('/campgrounds')
+    }
     res.render('campgrounds/show', { campground });
 }));
 
 router.post('/', validateCampground, catchAsync(async (req, res, next) => {
     const campground = new Campground(req.body.campground);
     await campground.save();
+    req.flash('success', "Succesfully created campground");
     res.redirect(`/campgrounds/${campground._id}`);
 }));
 
@@ -50,8 +56,8 @@ router.get('/:id/edit', catchAsync(async (req, res) => {
 router.put('/:id', catchAsync(async (req, res) => {
     const filter = { _id: req.params.id };
     const update = req.body.campground
-
     let doc = await Campground.findOneAndUpdate(filter, update, { returnOriginal: false });
+    req.flash('success', "Successfully updated campground");
     res.redirect(`/campgrounds/${doc._id}`);
 }));
 
