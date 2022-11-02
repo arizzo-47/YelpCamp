@@ -3,6 +3,7 @@ const flash = require('connect-flash');
 
 const Campground = require('../models/campground');
 const { campgroundSchema } = require('../schemas.js');
+const { isLoggedIn } = require('../middleware.js')
 
 const catchAsync = require('../utils/catchAsync');
 const ExpressError = require('../utils/ExpressError');
@@ -22,7 +23,7 @@ router.get('/', catchAsync(async (req, res) => {
     res.render('campgrounds/index', { campgrounds, success: res.locals.success });
 }));
 
-router.get('/new', (req, res) => {
+router.get('/new', isLoggedIn, (req, res) => {
     res.render('campgrounds/new')
 });
 
@@ -35,7 +36,7 @@ router.get('/:id', catchAsync(async (req, res) => {
     res.render('campgrounds/show', { campground });
 }));
 
-router.post('/', validateCampground, catchAsync(async (req, res, next) => {
+router.post('/', isLoggedIn, validateCampground, catchAsync(async (req, res, next) => {
     const campground = new Campground(req.body.campground);
     await campground.save();
     req.flash('success', "Succesfully created campground");
@@ -48,7 +49,7 @@ router.get('/', catchAsync(async (req, res) => {
     res.send(camp);
 }));
 
-router.get('/:id/edit', catchAsync(async (req, res) => {
+router.get('/:id/edit', isLoggedIn, catchAsync(async (req, res) => {
     const campground = await Campground.findById(req.params.id);
     res.render('campgrounds/edit', { campground });
 }));
